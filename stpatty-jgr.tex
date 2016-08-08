@@ -267,23 +267,62 @@ Examines the impacts of including Anomalous Electron Heating (AEH) in simulation
 
 \section{Introduction}
 
-Here we will need to include a background 
+Initial drafting of this section has been assigned to Meers and Slava.
 
 \section{Simulation Setup}
 \label{sec-model-sims}
-This section discusses the simulation setup for the study.  Need to address how LFM-RCM works for situtaions with dipole tilt.  Need to discuss the implmentation of the AEH term.  And finally the setup for the 17 March 2013 event.
+This study focuses on using the geomagnetic storm that occurred on 17 March 2013 as a case study for two new features of the LFM-RCM geospace model.   As previously discussed the LFM-RCM model combines the Lyon-Fedder-Mobarry MHD model of the magnetosphere with the Rice Convection Model of the inner magnetosphere and the Mangetosphere-Ionosphere Coupler Solver of ionospheric electrodynamics to provide a tightly coupled model of the geospace system. \cite{Pembroke:2012gc} describes in detail the basic process of coupling these three models together during idealized solar wind conditions with modest solar wind driving and no dipole tilt.  Section \ref{sec-lfm-rcm} describes how this approach has been modified to include realistic solar wind conditions, including nonzero IMF $B_Y$, as well as variations in the Earth's dipole tilt.  \cite{2005GeoRL..3222101M} implemented an adjustment to the ionospheric conductances based upon the theoretical analysis of the Farley-Buneman instability (FBI) conducted by \cite{2003JGRA..108.1350D}.  This capability has not be widely used in LFM simulations, but is being made part of the LFM-RCM geospace model.  Section \ref{sec-aeh} discusses how both the Anomalous Electron Heating (AEH) and Non-Linear Current (NLC) aspects of the FBI are implemented in the MIX portion of the LFM-RCM model.  In the final section of the portion of  the paper we present the solar wind conditions present during the 17 March 2013 geomagnetic storm and document the specific details of the LFM-RCM simulation chosen for this event study.
 
 \subsection{LFM-RCM}
+\label{sec-lfm-rcm}
 
-This section covers how LFM-RCM has been modified to work for dipole tilts.
+\cite{Pembroke:2012gc} provides a detailed description of the coupling process between the LFM, MIX and RCM models for simulations of geospace.  Since that study used idealized solar wind conditions with no dipole tilt after reviewing the basics of the LFM-RCM coupling this section will address the changes made to coupling infrastructure needed to allow model to work for realistic solar wind conditions and dipole tilts.  
 
-\subsection{AEH Implementation}
+The fundamental aspect of the model coupling is an exchange of magnetic field and plasma information in the inner magnetosphere to RCM from LFM and then an update of the plasma information from RCM to the LFM.  The MIX model is providing ionospheric potential information to both the LFM and RCM models.  All of the exchanges use the Center for Integrated Space Weather Modeling (CISM) \cite{2004JASTP..66.1469G} coupling infrastructure  and that infrastructure is utilized in the update version.  To transfer information from the LFM to the RCM it computes time averages of the pressure, density and magnetic field over an exchange interval.  This intermediate grid is then used to calculated field line-averaged pressure and density for positions in the RCM's ionospheric grid.  A key innovation of the \cite{Pembroke:2012gc} was the implementation of the plasma-$\beta$ methodology for setting the location of the outer boundary of the RCM.  This switch, which essentially prevented the RCM from computing regions with large flows, remains active in the storm simulations we present in this paper.  The averaged fields are interpolated onto an intermediate regular Cartesian grid. After the RCM computes its plasma pressures and densities these values are transferred back to the LFM once again using the intermediate grid.  The RCM density model includes a modifications to a fit of static plasmasphere model of \cite{Gallagher:2000p2797}.  At this time we have not implemented a dynamic plasmasphere calculation, but that is logical next step for improvement of the coupled model.  Another set of field line traces from the RCM ionospheric grid points are used to determine the local values on intermediate grid and than those values are interpolated to LFM grid points.  The mapping back to LFM assumes that the distribution of plasma density and pressure  is constant along field lines. As before the RCM values do not immediately replace the LFM values, instead they bled into the LFM over the exchange time interval.  It is important to note that the previous work used a 1-minute exchange interval as a  balance between speed and accuracy.  For strong solar wind driving conditions we have found it necessary to reduce the coupling interval to 15-seconds. 
 
-Here we discuss how the AEH term has been included in the simulation.
+The first major modification to the previous coupling efforts is in support of including dipole tilts in the calculation of the coupled model.  The LFM-MIX model has long had support for conducting simulations with realistic dipole tilts.  This is done by continuing to have the dipole axis of the Earth aligned with the Z-axis of the computational model and inputing the solar wind conditions in SM coordinates.  As \cite{1992P&SS...40..711H} explains the SM coordinate system has the Z-axis parallel to the north magnetic pole and transformation between this coordinate system and the more commonly used GSM coordinate system is simply rotation about the Y-axis by the dipole tilt angle.   The cartesian intermediate grid is setup in SM coordinates for the transfer of data to and from the LFM to RCM the ionospheric foot points are transformed from geographic coordinates to SM coordinates using the GEOPACK coordinate transform package.    While the RCM typically includes the effects of the corotation potential since this is not enabled in the LFM-MIX simulation these effects are disabled within the RCM when it is coupled to the LFM.  
 
-\subsection{17 March 2013 Event}
+The second key modification of the LFM-RCM coupling is how the asymmetries in the ionosphere are addressed.  In the MIX module the ionospheric potential for the northern and southern hemispheres are calculated independently.  The field-aligned current patterns are taken from the global MHD simulation are shared between the hemispheres, but the ionospheric conductances can be different.  The first major difference comes from the implementation the EUV conductance model that calculates the local value of the Hall and Pedersen conductance based upon the solar zenith angle and the F107 flux value.  We have adapted the model used by AMIE for the MIX module \cite{1992AdSpR..12...59R}.  The ionospheric conductance model also includes an empirical model for electron precipitation.  As described by \cite{2009JGRA..11401204W} this model includes modifications of the precipitation values based upon the local EUV conductance values allowing the model to simulate seasonal variations of particle precipitation and their impacts on geospace system.  On the other hand the RCM assumes that there are no differences between the northern and southern hemispheres.  
 
-Here we talk about the conditions  during the event
+The compromise solution we have adopted for the version of the coupled simulations present here works as follows.  The low latitude boundary of the the ionospheric solution for electrodynamic solve is extended equatorward for 45$\circ$ to 60$\circ$ colatitude.   The 45$\circ$ boudnary corresponds to dipole mapping of the 2 $R_E$ inner boundary of the MHD solution grid within the LFM.  The 60$\circ$ boundary corresponds to the low latitude boundary for the RCM ionospheric calculation. {\em Frank - Is the previous statement correct?} For the northern hemisphere the typical low latitude boundary condition of assuming that potential is zero is used.  The northern hemispheric values for the potential as well as the average energy and flux of precipitating electrons are then stored for latter passage to the RCM for its calculation.  The computation of the southern hemisphere potential is done down 45$\circ$ with the low latitude boundary value being set of the potential obtained from the northern hemisphere at that location.   By setting the southern hemisphere boundary with the northern hemisphere values we are attempting ensure that closed field lines in the calculation have the same potential values.   {\em Slava and Frank - Is that the best way to describe the motivation for this coupling approach?  Also, should we address why we aren't passing any kind of aggregate flux or conductance information to the RCM calculation.}
+
+As a quick side note we take a moment to compare our approach that utilized by the Space Weather Modeling Framework \cite{2005JGRA..11012226T} to couple the MHD magnetosphere solution to inner magnetosphere models.   \cite{2004JGRA..10912219D} did the initial work coupling the RCM with the BATS-R-US magnetosphere solution.  Like us they used field line tracing to compute flux tube quantities for transfer between the two components and also assume the plasma parameters are constant along field lines.  They support coupling intervals between 10 seconds to 10 minutes with coupling time between models with balance being driving by the strength of  convection within the event being simulated.  This initial work was done for simulations with no dipole tilts and uniform ionospheric conductances.   \cite{2010SpWea...803002W} presents validation studies comparing the magnetic field and plasma parameters for a set of geomagnetic storms.  While these results clearly include the effects of dipole tilts and particle precipitation effects the study does not provide any details on how these conditions are handed in the coupled model.   More recently \cite{Glocer:2013dv} documented the two-way coupling of the Comprehensive Ring Current Model (CRCM) with the BATS-R-US global magnetosphere model, while they presented results for 22 July 2009 geomagnetic storm the paper does not discuss the details of how dipole tilt are addressed.  {\em Frank and Slava - I thought this was a worth while addition here and not in the introduction since it concentrates on coupling details.  Am I being to harsh in my language about not discussing how the dipole tilt is addressed? I'm not aware of any OpenGGCM publications with RCM.  If I've missed something please let me know.}
+
+\subsection{FBI Implementation}
+\label{sec-aeh}
+
+\cite{2011JGRA..116.9304D} developed a model for including the effects that plasma turbulence can have on E-region conductivities in regions of strong DC electric fields.  This tublence can drive nonlinear currents and have strong anomalous electron heating of the plasma.  Both these effects can enhance the conductivity.  Their model provides correction factors for the conductivities that we have implemented into the MIX module.
+
+{\em Meers and Yakov - Please insert a paragraph or two with more background information. In particular, I need justification for why we are only applying this regions with E greater than 35 mV/m}  
+
+Inside the MIX module we have implemented the following conductivity correction terms.   In regions where the electric field is greater than 35 mV/m we have implemented, 
+
+\begin{equation}
+\label{eq-sigmap-fbi}
+\Sigma_P^{FBI} = \Sigma_P^O(1+0.01 (E - 35) + 1.3e10^{-5}(E - 35)^2),
+\end{equation}
+
+as the calculation for the FBI modified conductivity, $\Sigma_P^{FBI}$.  In Equation \ref{eq-sigmap-fbi} $E$ is the ionospheric electric field in mV/m and $\Sigma_P^O$ is the Pedersen conductivity obtained from the baseline ionospheric model and includes both the EUV and electron precipitation terms.  This multiplier includes the effect of the temperature driven recombination reduction as well as the that of nonlinear current.  The FBI modified Hall conductivity, $\Sigma_H^{FBI}$ ,  is simply 
+
+\begin{equation}
+\label{eq-sigmah-fbi}
+\Sigma_H^{FBI} = \Sigma_H^O(1+0.01172 (E - 35) - 1.207e10^{-5}(E - 35)^2),
+\end{equation}
+
+where $\Sigma_H^O$ is the baseline Hall conductivity.   Figure \ref{fbi-multi-fig} shows the effects of these multipliers over a range electric fields.  The Pedersen multiplier (blue curve) is nearly linear over the range from 35-200 mV/m reaching a peak value of 3.0 at 200 mV/m.  The Hall multiplier has a negative coefficient on the the squared term and so falls of more dramatically at higher values of the electric field.  It reaches a peak value of 2.3 at 200 mV/m.  {\em Meers and Yakov - Not sure if the figure adds much, but I'm happy to include it.}
+
+\begin{figure}
+\noindent\includegraphics[width=20pc]{JGRPaper-ConductMulti.pdf}
+\caption{\label{fbi-multi-fig} 
+The conductivity multipliers for the FBI effects.  The blue curve is for the Pedersen conductivity while the orange curve is for the Hall conductivity.  The effects occur for all values above 35 mV/m.  } 
+\end{figure}
+
+\subsection{17 March 2013 Simulation}
+\label{sec-17mar13}
+
+On 17 March 2013 an interplanetary coronal mass ejection arrived at the Earth and drove a significant geomagnetic storm, $D_{ST} < -100$, over the next day.  Solar wind conditions obtained from the OMNI dataset where used to drive the LFM-RCM model and those are shown in Figure \ref{sw-fig}.  Prior to the shock preceding the CME the solar wind conditions are fairly typical, namely density ~ 5 cc, velocity ~ 425 km/s, with interplanetary magnetic field (IMF) weak, $<$ 5nT in magnitude, main in the northward direction.  At 05:55 UT a shock is clearly present in the solar wind with $V_X$ GSM reaching -650 km/s and the density increasing to 10 cc.  In the next three hours the IMF is variable, with IMF $B_Z$ mainly southward reaching values of -20 nT, but having significant intervals with northward IMF.  The Y component of the IMF has similar magnitude in amplitude and appears to have a 180 $\deg$ phase shift.  After approximately  09:00 UT on the 17th the Y and Z components become more in phase and slowly reduce in amplitude reaching typical values by the end of the day.  After about 12:00 UT the solar wind speed slowly begins to decrease reaching a value of about 550 km/s by the end of 17 March.
+
+The LFM-RCM simulations for this interval where run using solar wind conditions from Figure \ref{sw-fig}.  As previously discussed the LFM uses a non-orthogonal spherical mesh for the grid.  The simulations conducted here use 106 radial, 96 azmiuthal, and 128 polar cells.  This quad resolution version of the LFM contains twice as many cells as the results reported by \cite{Pembroke:2012gc} initial work with coupling LFM-RCM.   The RCM simulations where done on a grid with XX and YY points.  The intermediate transfer grid between LFM-RCM used for the field line tracing had a resolution of ZZ.  In the MIX ionospheric solution the ionospheric resolution was increased from a 2x2$^{\circ}$ resolution to 1x1$^{\circ}$resolution.  The full ionospheric conductance model described by \cite{2009JGRA..11401204W} by was enabled in the MIX calculations.  We ran two sets of simulations.  The first hereafter, baseline, used the standard ionospheric model.  The second, hereafter AEH, had the AEH implementation discussed in Section \ref{sec-aeh} enabled.  The solar wind driving, grid resolution, and all other model parameters are not changed between these to runs. 
 
 \begin{figure}
 \noindent\includegraphics[width=20pc]{JGRPaper-SWFig.pdf}
@@ -296,6 +335,9 @@ Solar wind and IMF conditions during the 17 March 2013 geomagnetic storm event. 
 In this section we examine impact of the using AEH.
 
 \subsection{Baseline versus AEH}
+
+Initial drafting of this section is assigned to Mike.
+
 Possible figures include 
 
 \begin{figure*}[t]
@@ -311,7 +353,7 @@ Comparison of the CPCP, FAC, and $D_{ST}$ time series for the storm event for th
 \end{figure}
 
  \subsection{Comparison with DSMP}
- Here will discuss SAPs and the comparison with the DSMP results.
+Initial drafting of this section has been assigned to Bin.
  
  \begin{figure*}[t]
 \noindent\includegraphics[width=39pc]{DMSPTraj.pdf}
@@ -332,6 +374,9 @@ Temporary Figure comparing DMSP F18 results}
 \end{figure*}
 
  \subsection{Comparison with AMPERE}
+ 
+ Initial drafting of this section has been assigned to Mike.
+ 
  Here will discuss the results and compare them with AMPERE
  
 \begin{figure*}[t]
@@ -341,6 +386,10 @@ Temporary Figure comparing AMPERE and LFM-RCM}
 \end{figure*}
 
  \subsection{Comparison with TS07-D}
+ 
+ Initial drafting of this section has been assigned to Slava.
+ 
+ 
  May include a comparison with pressures in the in the ring current depending on length and quality of comparison.
  
 \begin{figure*}[t]
@@ -352,6 +401,8 @@ Temporary Figure comparing Baseline and AEH pressures}
 
  \section{Summary and Future Directions}
 \label{sec-future}
+
+Mike will write this section once the paper is nearly finished.
 
 Our SAPS are the best!
 
@@ -390,7 +441,7 @@ Our SAPS are the best!
 %  ACKNOWLEDGMENTS
 
 \begin{acknowledgments}
-This material is based upon work supported by NASA grants NNX13AE39G, NNX13AF82G, NNX12AD31G, and NNX13AF78G.  The National Center for Atmospheric Research is sponsored by the National Science Foundation.  All model output, simulation codes, and analysis routines are being preserved on the NCAR High Performance Storage System and will be made available upon written request to the lead author of this publication.  The computations were performed on Kraken through an allocation of advanced computing resources provided by the Extreme Science and Engineering Discovery Environment (XSEDE), which is supported by NSF grant OCI-1053575.
+This material is based upon work supported by NASA grants XX, YY, and ZZ.  The National Center for Atmospheric Research is sponsored by the National Science Foundation.  All model output, simulation codes, and analysis routines are being preserved on the NCAR High Performance Storage System and will be made available upon written request to the lead author of this publication. 
 \end{acknowledgments}
 
 %% ------------------------------------------------------------------------ %%
