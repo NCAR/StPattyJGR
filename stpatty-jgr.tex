@@ -292,33 +292,33 @@ As a quick side note we take a moment to compare our approach that utilized by o
 \subsection{Electrojet Turbulence Implementation}
 \label{sec-ET}
 
-\cite{2011JGRA..116.9304D} developed a model of how FBI turbulence modifies E-region conductivities when driven by strong DC electric fields.  This turbulence gives rise to both nonlinear currents (NC) and anomalous electron heating (AEH). Both these will increase the conductivity. This model was incorporated into the MIX module as a set
+\cite{2011JGRA..116.9304D} developed a model of how FBI turbulence modifies E-region conductivities when driven by strong DC electric fields.  This turbulence gives rise to both nonlinear currents (NC) and anomalous electron heating (AEH). Both these will increase the conductivities. This model was incorporated into the MIX module as a set
 of conductance correction factors that depend on the driving electric field.
 
 The model of AEH was developed in \cite{2003JGRA..108.1350D} assuming a specific FBI turbulence level. This self-consistent approach accounts for the fact that as the FBI turbulence raises the electron temperature $T_e$, it increases the instability threshold field, $E_{\mathrm{Thr}}^{\min}$, causing the saturated turbulence level to grow with $E_0$ much more slowly than if $T_e$ were constant. It also accounted for kinetic modification of the electron distribution function and the corresponding enhanced cooling this causes.  The resulting elevated electron temperature $T_{e}$ increases the conductivities by reducing in the local plasma recombination rate and therefore increasing the plasma density \cite{1978SVPCS..10.....G,1990AdSpR..10..239S,2003JGRA..108.1350D,2006GeoRL..3313809M}.
 
 The NC model was developed by \cite{1996GeoRL..23.3333O,1997AnGeo..15..899O}.  This predicts a strong current driven by FB turbulence in the direction of the DC field.  The model used in the MIX module combines $E_{\mathrm{Thr}}^{\min}(E)$ with an assumed level of saturated FBI density fluctuations as seen in simulations by \cite{2013JGRA..118.1306O}. This modifies the Hall and Pedersen conductance, as described in \cite{2011JGRA..116.9304D}.
 
-Inside the MIX module we have implemented the following conductivity correction terms combing the AEH and NC correction factors.   In regions where the electric field is greater than 35 mV/m we have implemented, 
+Inside the MIX module we have implemented the following conductance correction terms combing the AEH and NC correction factors.   In regions where the electric field is greater than 35 mV/m we have implemented, 
 
 \begin{equation}
 \label{eq-sigmap-fbi}
 \Sigma_P^{ET} = \Sigma_P^O(1+0.01 (E - 35) + 1.3e10^{-5}(E - 35)^2),
 \end{equation}
 
-as the calculation for the Electojet Turbulence (ET) modified conductivity, $\Sigma_P^{ET}$.  In Equation \ref{eq-sigmap-fbi} $E$ is the ionospheric electric field in mV/m and $\Sigma_P^O$ is the Pedersen conductivity obtained from the baseline ionospheric model and includes both the EUV and electron precipitation terms.  This multiplier includes the effect of the temperature driven recombination reduction as well as the that of nonlinear current.  The FBI modified Hall conductivity, $\Sigma_H^{ET}$ ,  is simply 
+as the calculation for the Electojet Turbulence (ET) modified conductance, $\Sigma_P^{ET}$.  In Equation \ref{eq-sigmap-fbi} $E$ is the ionospheric electric field in mV/m and $\Sigma_P^O$ is the Pedersen conductance obtained from the baseline ionospheric model and includes both the EUV and electron precipitation terms.  This multiplier includes the effect of the temperature driven recombination reduction as well as the that of nonlinear current.  The FBI modified Hall conductance, $\Sigma_H^{ET}$ ,  is simply 
 
 \begin{equation}
 \label{eq-sigmah-fbi}
 \Sigma_H^{ET} = \Sigma_H^O(1+0.01172 (E - 35) - 1.207e10^{-5}(E - 35)^2),
 \end{equation}
 
-where $\Sigma_H^O$ is the baseline Hall conductivity.   Figure \ref{fbi-multi-fig} shows the effects of these multipliers over a range electric fields.  The Pedersen multiplier (blue curve) is nearly linear over the range from 35-200 mV/m reaching a peak value of 3.0 at 200 mV/m.  The Hall multiplier has a negative coefficient on the the squared term and so falls of more dramatically at higher values of the electric field.  It reaches a value of 2.3 at 200 mV/m.  We note that the Farley-Buneman Instability typically starts developing if the convection field, $E$, exceeds $\approx20$ mV/m. However, the macroscopic effect of E-region turbulence becomes substantial only for field when it exceeds $E>35$ mV/m, therefore we eliminate the effect below this level for computational simplicity. 
+where $\Sigma_H^O$ is the baseline Hall conductance.   Figure \ref{fbi-multi-fig} shows the effects of these multipliers over a range electric fields.  The Pedersen multiplier (blue curve) is nearly linear over the range from 35-200 mV/m reaching a peak value of 3.0 at 200 mV/m.  The Hall multiplier has a negative coefficient on the the squared term and so falls of more dramatically at higher values of the electric field.  It reaches a value of 2.3 at 200 mV/m.  We note that the Farley-Buneman Instability typically starts developing if the convection field, $E$, exceeds $\approx20$ mV/m. However, the macroscopic effect of E-region turbulence becomes substantial only for field when it exceeds $E>35$ mV/m, therefore we eliminate the effect below this level for computational simplicity. 
 
 \begin{figure}
 \noindent\includegraphics[width=20pc]{JGRPaper-ConductMulti.pdf}
 \caption{\label{fbi-multi-fig} 
-The conductivity multipliers for the Electrojet Turbulence effects.  The blue curve is for the Pedersen conductivity while the orange curve is for the Hall conductivity.  The effects occur for all values above 35 mV/m.  } 
+The conductivity multipliers for the Electrojet Turbulence effects.  The blue curve is for the Pedersen conductance while the orange curve is for the Hall conductance.  The effects occur for all values above 35 mV/m.  } 
 \end{figure}
 
 \subsection{17 March 2013 Simulation}
